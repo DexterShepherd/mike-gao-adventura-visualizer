@@ -2,24 +2,27 @@ let THREE = require('three-js')();
 const p5 = require('p5');
 const sound = require('p5/lib/addons/p5.sound.js');
 const dom = require('p5/lib/addons/p5.dom.js');
+const NOC = require('./src/particle.js');
 
 
 new p5(p => {
-  let input, detail, count, spectrum, peaks,
-    drumFFT, drum, bp,
-    playback, mute, thresh_contol, thresh, debug,
-    speed, size, num_circles, radius, particles
+  let input, drumFFT, drum, lp, playback, mute;
 
   p.preload = function() {
-    playback = p.loadSound('data/mike-gao.mp3');
-    drum = p.loadSound('data/mike-gao.mp3');
-    // playback = p.loadSound('humbled.mp3');
-    // drum = p.loadSound('humbled.mp3');
+    // playback = p.loadSound('data/mike-gao.mp3');
+    // drum = p.loadSound('data/mike-gao.mp3');
+    let audioPath = 'humbled.mp3';
+    playback = p.loadSound(audioPath);
+    drum = p.loadSound(audioPath);
   }
 
   p.setup = function() {
+    // move default canvas out of the way
+    let c = p.createCanvas(0, 0);
+    c.position(-9999, -9999);
     setupAudio();
-    debug = false;
+    init();
+    animate();
   }
 
   p.draw = function() {
@@ -31,11 +34,12 @@ new p5(p => {
   function setupAudio() {
     drumFFT = new p5.FFT();
     drum.disconnect();
-    bp = new p5.LowPass();
-    bp.freq(440);
-    bp.disconnect();
-    drum.connect(bp);
-    drumFFT.setInput(bp);
+    lp = new p5.LowPass();
+    //440
+    lp.freq(440);
+    lp.disconnect();
+    drum.connect(lp);
+    drumFFT.setInput(lp);
     playback.loop();
     drum.loop();
     mute = new p5.Gain();
@@ -44,52 +48,6 @@ new p5(p => {
   }
 });
 
-class Particle {
-  constructor(l, point_index) {
-    this.loc = new THREE.Vector3();
-    this.loc.copy(l);
-
-    this.index = point_index;
-    this.limit = Math.random() * 10 + 2;
-    this.scaler = Math.random();
-
-    this.vel = new THREE.Vector3(_random(10),
-                                 _random(10),
-                                 _random(10));
-
-    this.acc = new THREE.Vector3(0, 0, 0);
-  }
-
-  update(num_circles) {
-    this.theta = mapRange(this.index % num_circles, 0, 5, 0, Math.PI * 2);
-
-    this.dest = new THREE.Vector3(
-      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 250,
-      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 250,
-      Math.sin(speed + this.theta) * Math.cos(speed + this.theta) * 250,
-    );
-
-    if(this.loc.distanceTo(this.dest) > 5000) {
-      this.loc.copy(this.dest);
-      this.vel.copy(new THREE.Vector3(0, 0, 0));
-    }
-
-    this.acc = this.dest.sub(this.loc);
-    this.acc.normalize();
-    this.acc.multiplyScalar(this.scaler);
-    // this.vel.min(new THREE.Vector3(Math.sin(speed) + Math.PI * this.limit, Math.sin(speed) + Math.PI * this.limit, Math.sin(speed) + Math.PI * this.limit));
-    // this.vel.min(new THREE.Vector3(this.limit,this.limit, this.limit));
-    // this.vel.clampLength(0, this.limit);
-    this.vel.add(this.acc);
-    this.loc.add(this.vel);
-
-    if (Math.random() > 0.999) {
-      this.index = (this.index + 1 % num_circles);
-    }
-
-    return this.loc;
-  }
-}
 
 let container, clock = new THREE.Clock(true);
 let camera, scene, renderer, particles, geometry, material, parameters, i, h, color, size;
@@ -97,12 +55,11 @@ let dests, sphere, testers = [], speed = 0, num_points = 1;
 let movers;
 let mouseX = 0, mouseY = 0;
 let audioTrigger = 0;
+let composer;
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
-init();
-animate();
 
 function init() {
   container = document.createElement( 'div' );
@@ -110,51 +67,96 @@ function init() {
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
   camera.position.z = 1000;
   scene = new THREE.Scene();
-  // scene.fog = new THREE.FogExp2( 0x000000, 0.0007 );
-
   geometry = new THREE.Geometry();
-
   movers = [];
 
   for ( i = 0; i < 20000; i ++ ) {
     var vertex = new THREE.Vector3(0, 0, 0);
     geometry.vertices.push( vertex );
-    movers.push(new Particle(vertex, i % num_points));
+    movers.push(new NOC.Particle(new THREE.Vector3(_random(1000), _random(1000), _random(1000)), i % num_points));
   }
 
 
     let tex = new THREE.TextureLoader().load('images/circle2.png');
-    material = new THREE.PointsMaterial( { size: 2, map: tex, color: 0xffffff } );
+    material = new THREE.PointsMaterial( { size: Math.random() * 2, color: 0xffffff } );
     particles = new THREE.Points( geometry, material );
 
-    particles.rotation.x = Math.random() * 6;
-    particles.rotation.y = Math.random() * 6;
-    particles.rotation.z = Math.random() * 6;
+    // particles.rotation.x = Math.random() * 6;
+    // particles.rotation.y = Math.random() * 12;
+    // particles.rotation.z = Math.random() * 6;
 
     scene.add( particles );
-
-  // dests = new THREE.SphereGeometry( 200, 10, 5 );
-  // var material = new THREE.MeshBasicMaterial( {wireframe: true} );
-  // sphere = new THREE.Mesh( dests, material );
-  // scene.add( sphere );
 
   for(let i = 0; i < 5; i++) {
     let geom = new THREE.SphereGeometry( 30, 10, 10 );
     let material = new THREE.MeshBasicMaterial( {wireframe: true} );
     let sphere = new THREE.Mesh( geom, material );
-    // scene.add( sphere );
     testers.push(sphere);
   }
 
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
+
+
   container.appendChild( renderer.domElement );
   document.addEventListener( 'mousemove', onDocumentMouseMove, false );
   document.addEventListener( 'touchstart', onDocumentTouchStart, false );
   document.addEventListener( 'touchmove', onDocumentTouchMove, false );
   window.addEventListener( 'resize', onWindowResize, false );
 }
+
+
+let tag = 0;
+let exploded = false;
+
+function animate() {
+  speed += 0.01;
+  particles.geometry.vertices.forEach( (v, index) => {
+    if ( exploded ) {
+      movers[index].scaler = Math.random();
+      movers[index].vel.copy( new THREE.Vector3(0, 0, 0) );
+      exploded = false;
+    }
+    if(audioTrigger > 202) {
+      movers[index].vel.copy(new THREE.Vector3(_random(10), _random(10), _random(10)));
+      num_points = Math.floor(Math.random() * 20) + 1;
+      movers[index].scaler = 1 - movers[index].scaler;
+      if( audioTrigger > 230 ) {
+        if (tag % 4 == 0) {
+          movers[index].scaler = Math.random() * 3;
+          exploded = true
+        }
+        tag++;
+      }
+    }
+
+    v.copy( movers[index].update(num_points, speed) );
+  })
+
+  particles.geometry.verticesNeedUpdate = true;
+  requestAnimationFrame( animate );
+  render();
+}
+
+function render() {
+  var time = Date.now() * 0.00005;
+  camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+  camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+  camera.lookAt( scene.position );
+
+  renderer.render( scene, camera );
+}
+
+
+function mapRange(value, oldMin, oldMax, newMin, newMax) {
+  return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
+}
+
+function _random(size) {
+  return (Math.random() * size ) - ( size / 2.0 );
+}
+
 
 function onWindowResize() {
   windowHalfX = window.innerWidth / 2;
@@ -183,54 +185,4 @@ function onDocumentTouchMove( event ) {
     mouseX = event.touches[ 0 ].pageX - windowHalfX;
     mouseY = event.touches[ 0 ].pageY - windowHalfY;
   }
-}
-
-let tag = 0;
-let exploded = false;
-
-function animate() {
-  speed += 0.005;
-  particles.geometry.vertices.forEach( (v, index) => {
-    if ( exploded ) {
-      movers[index].scaler = Math.random();
-      movers[index].vel.copy( new THREE.Vector3(0, 0, 0) );
-      exploded = false;
-    }
-    if(audioTrigger > 202) {
-      movers[index].vel.copy(new THREE.Vector3(_random(10), _random(10), _random(10)));
-      num_points = Math.floor(Math.random() * 20) + 1;
-      movers[index].scaler = 1 - movers[index].scaler;
-      if( audioTrigger > 230 ) {
-        if (tag % 4 == 0) {
-          movers[index].scaler = 2;
-          exploded = true
-        }
-        tag++;
-      }
-    }
-
-    v.copy( movers[index].update(num_points) );
-  })
-
-  particles.geometry.verticesNeedUpdate = true;
-  requestAnimationFrame( animate );
-  render();
-}
-
-function render() {
-  var time = Date.now() * 0.00005;
-  camera.position.x += ( mouseX - camera.position.x ) * 0.05;
-  camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
-  camera.lookAt( scene.position );
-
-  renderer.render( scene, camera );
-}
-
-
-function mapRange(value, oldMin, oldMax, newMin, newMax) {
-  return (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
-}
-
-function _random(size) {
-  return (Math.random() * size ) - ( size / 2.0 );
 }
