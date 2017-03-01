@@ -12,7 +12,9 @@ new p5(p => {
 
   p.preload = function() {
     playback = p.loadSound('data/mike-gao.mp3');
-    drum = p.loadSound('data/mike-gao-drum.mp3');
+    drum = p.loadSound('data/mike-gao.mp3');
+    // playback = p.loadSound('humbled.mp3');
+    // drum = p.loadSound('humbled.mp3');
   }
 
   p.setup = function() {
@@ -44,33 +46,40 @@ new p5(p => {
 
 class Particle {
   constructor(l, point_index) {
-    this.loc = new THREE.Vector3(); 
-    this.loc.copy(l); 
+    this.loc = new THREE.Vector3();
+    this.loc.copy(l);
 
     this.index = point_index;
-    this.limit = 2 + Math.random() * 20;
+    this.limit = Math.random() * 10 + 2;
+    this.scaler = Math.random();
 
-    this.vel = new THREE.Vector3(_random(30),
-                                 _random(30),
-                                 _random(30)); 
-                                 
-    this.acc = new THREE.Vector3(0, 0, 0); 
+    this.vel = new THREE.Vector3(_random(10),
+                                 _random(10),
+                                 _random(10));
+
+    this.acc = new THREE.Vector3(0, 0, 0);
   }
 
   update(num_circles) {
     this.theta = mapRange(this.index % num_circles, 0, 5, 0, Math.PI * 2);
 
     this.dest = new THREE.Vector3(
-      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 150,
-      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 150,
-      0,
+      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 250,
+      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 250,
+      Math.sin(speed + this.theta) * Math.cos(speed + this.theta) * 250,
     );
+
+    if(this.loc.distanceTo(this.dest) > 5000) {
+      this.loc.copy(this.dest);
+      this.vel.copy(new THREE.Vector3(0, 0, 0));
+    }
 
     this.acc = this.dest.sub(this.loc);
     this.acc.normalize();
-    this.acc.multiplyScalar(0.5);
+    this.acc.multiplyScalar(this.scaler);
     // this.vel.min(new THREE.Vector3(Math.sin(speed) + Math.PI * this.limit, Math.sin(speed) + Math.PI * this.limit, Math.sin(speed) + Math.PI * this.limit));
-    this.vel.min(new THREE.Vector3(this.limit,this.limit, this.limit));
+    // this.vel.min(new THREE.Vector3(this.limit,this.limit, this.limit));
+    // this.vel.clampLength(0, this.limit);
     this.vel.add(this.acc);
     this.loc.add(this.vel);
 
@@ -78,12 +87,12 @@ class Particle {
       this.index = (this.index + 1 % num_circles);
     }
 
-    return this.loc;  
+    return this.loc;
   }
 }
 
 let container, clock = new THREE.Clock(true);
-let camera, scene, renderer, particles, geometry, materials = [], parameters, i, h, color, size;
+let camera, scene, renderer, particles, geometry, material, parameters, i, h, color, size;
 let dests, sphere, testers = [], speed = 0, num_points = 1;
 let movers;
 let mouseX = 0, mouseY = 0;
@@ -113,25 +122,16 @@ function init() {
     movers.push(new Particle(vertex, i % num_points));
   }
 
-  parameters = [
-    [ [1, 1, 1], 5 ],
-  ];
-
-  for ( i = 0; i < parameters.length; i ++ ) {
-
-    color = parameters[i][0];
-    size  = parameters[i][1];
 
     let tex = new THREE.TextureLoader().load('images/circle2.png');
-    materials[i] = new THREE.PointsMaterial( { size: size, map: tex, color: 0xffffff } );
-    particles = new THREE.Points( geometry, materials[i] );
+    material = new THREE.PointsMaterial( { size: 2, map: tex, color: 0xffffff } );
+    particles = new THREE.Points( geometry, material );
 
-    // particles.rotation.x = Math.random() * 6;
-    // particles.rotation.y = Math.random() * 6;
-    // particles.rotation.z = Math.random() * 6;
+    particles.rotation.x = Math.random() * 6;
+    particles.rotation.y = Math.random() * 6;
+    particles.rotation.z = Math.random() * 6;
 
     scene.add( particles );
-  }
 
   // dests = new THREE.SphereGeometry( 200, 10, 5 );
   // var material = new THREE.MeshBasicMaterial( {wireframe: true} );
@@ -185,13 +185,28 @@ function onDocumentTouchMove( event ) {
   }
 }
 
-function animate() {
-  speed += 0.02;
-  particles.geometry.vertices.forEach( (v, index) => {
-    if(audioTrigger > 202) {
-      movers[index].vel.copy(new THREE.Vector3(_random(5), _random(5), _random(5))); 
+let tag = 0;
+let exploded = false;
 
-      num_points = Math.floor(Math.random() * 4) + 1;
+function animate() {
+  speed += 0.005;
+  particles.geometry.vertices.forEach( (v, index) => {
+    if ( exploded ) {
+      movers[index].scaler = Math.random();
+      movers[index].vel.copy( new THREE.Vector3(0, 0, 0) );
+      exploded = false;
+    }
+    if(audioTrigger > 202) {
+      movers[index].vel.copy(new THREE.Vector3(_random(10), _random(10), _random(10)));
+      num_points = Math.floor(Math.random() * 20) + 1;
+      movers[index].scaler = 1 - movers[index].scaler;
+      if( audioTrigger > 230 ) {
+        if (tag % 4 == 0) {
+          movers[index].scaler = 2;
+          exploded = true
+        }
+        tag++;
+      }
     }
 
     v.copy( movers[index].update(num_points) );
