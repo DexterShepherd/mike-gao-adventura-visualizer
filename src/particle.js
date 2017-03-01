@@ -6,17 +6,19 @@ class Particle {
     this.loc.copy(l);
 
     this.index = point_index;
-    this.limit = 1;
-    this.scaler = 1.1;
+    this.limit = 5;
+    this.scaler = 0.01;
 
-    this.vel = new THREE.Vector3(_random(10),
-                                 _random(10),
-                                 _random(10));
+    this.vel = new THREE.Vector3(_random(1),
+                                 _random(1),
+                                 _random(1));
 
     this.acc = new THREE.Vector3(0, 0, 0);
   }
 
-  update(num_circles, speed) {
+  update(loc, num_circles, speed) {
+    this.loc.copy(loc);
+
     this.theta = mapRange(this.index % num_circles, 0, 5, 0, Math.PI * 2);
 
     if(Math.random()  > 0.99) {
@@ -24,9 +26,9 @@ class Particle {
     }
 
     this.dest = new THREE.Vector3(
-      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 400,
-      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 250,
-      Math.sin(speed + this.theta) * Math.cos(speed + this.theta) * 350,
+      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 200,
+      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 200,
+      0,
     );
 
     this.acc.copy(this.dest.sub(this.loc));
@@ -35,10 +37,13 @@ class Particle {
     this.vel.add(this.acc);
     this.loc.add(this.vel);
 
-    // if(this.loc.distanceTo(this.dest) > 2000) {
-    //    this.vel.copy(new THREE.Vector3(0, 0, 0));
-    //    return (this.dest);
-    // }
+    if(this.loc.distanceTo(this.dest) > 2000) {
+      if(Math.random() > 0.7) {
+       this.vel.copy(new THREE.Vector3(0, 0, 0));
+       this.loc.copy(this.dest);
+      }
+    }
+
     if (Math.random() > 0.999) {
       this.index = (this.index + 1 % num_circles);
     }

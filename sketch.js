@@ -12,8 +12,8 @@ new p5(p => {
     // playback = p.loadSound('data/mike-gao.mp3');
     // drum = p.loadSound('data/mike-gao.mp3');
     let audioPath = 'humbled.mp3';
-    playback = p.loadSound(audioPath);
-    drum = p.loadSound(audioPath);
+    playback = p.loadSound('data/mike-gao.mp3');
+    drum = p.loadSound('data/mike-gao-drum.mp3');
   }
 
   p.setup = function() {
@@ -49,13 +49,15 @@ new p5(p => {
 });
 
 
-let container, clock = new THREE.Clock(true);
+let container, clock = new THREE.Clock(true), clockBig = new THREE.Clock(true);
 let camera, scene, renderer, particles, geometry, material, parameters, i, h, color, size;
 let dests, sphere, testers = [], speed = 0, num_points = 1;
 let movers;
 let mouseX = 0, mouseY = 0;
 let audioTrigger = 0;
 let composer;
+
+let timeSinceLastTrigger = 0;
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
@@ -70,10 +72,10 @@ function init() {
   geometry = new THREE.Geometry();
   movers = [];
 
-  for ( i = 0; i < 20000; i ++ ) {
+  for ( i = 0; i < 40000; i ++ ) {
     var vertex = new THREE.Vector3(0, 0, 0);
     geometry.vertices.push( vertex );
-    movers.push(new NOC.Particle(new THREE.Vector3(_random(1000), _random(1000), _random(1000)), i % num_points));
+    movers.push(new NOC.Particle(vertex, i % num_points));
   }
 
 
@@ -82,7 +84,7 @@ function init() {
     particles = new THREE.Points( geometry, material );
 
     // particles.rotation.x = Math.random() * 6;
-    // particles.rotation.y = Math.random() * 12;
+    // particles.rotation.y = Math.random() * 6;
     // particles.rotation.z = Math.random() * 6;
 
     scene.add( particles );
@@ -109,20 +111,28 @@ function init() {
 
 let tag = 0;
 let exploded = false;
+let trigger = false;
+let triggerBig = false;
 
 function animate() {
-  speed += 0.01;
+
+  speed += mapRange(audioTrigger, 0, 255, 0.0001, 0.0200);
+
+  trigger = ((audioTrigger > 202) && (clock.getDelta() > 0.1));
+  triggerBig = ((audioTrigger > 230) && (clockBig.getDelta() > 0.1));
+
+
   particles.geometry.vertices.forEach( (v, index) => {
     if ( exploded ) {
-      movers[index].scaler = Math.random();
+      movers[index].scaler = 0.01;
       movers[index].vel.copy( new THREE.Vector3(0, 0, 0) );
       exploded = false;
     }
-    if(audioTrigger > 202) {
+    if(trigger) {
       movers[index].vel.copy(new THREE.Vector3(_random(10), _random(10), _random(10)));
       num_points = Math.floor(Math.random() * 20) + 1;
       movers[index].scaler = 1 - movers[index].scaler;
-      if( audioTrigger > 230 ) {
+      if( triggerBig ) {
         if (tag % 4 == 0) {
           movers[index].scaler = Math.random() * 3;
           exploded = true
@@ -130,13 +140,17 @@ function animate() {
         tag++;
       }
     }
-
-    v.copy( movers[index].update(num_points, speed) );
+    v.copy( movers[index].update(v, num_points, speed) );
   })
 
+  particles.rotation.z = speed * 0.01;
   particles.geometry.verticesNeedUpdate = true;
+
   requestAnimationFrame( animate );
   render();
+
+  trigger = false;
+  triggerBig = false;
 }
 
 function render() {
