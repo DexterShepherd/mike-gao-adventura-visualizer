@@ -25,10 +25,12 @@ class Particle {
       this.vel.copy(new THREE.Vector3(0, 0, 0));
     }
 
+    let r = Math.sin(speed) * 300
+
     this.dest = new THREE.Vector3(
-      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * 200,
-      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * 200,
-      0,
+      Math.sin(speed + (this.theta * Math.sin(speed) + Math.PI)) * r,
+      Math.cos(speed + (this.theta * Math.cos(speed) + Math.PI)) * r,
+      (Math.sin(speed + this.theta) * Math.cos(speed + this.theta) * 100) - 200
     );
 
     this.acc.copy(this.dest.sub(this.loc));
@@ -36,13 +38,6 @@ class Particle {
     this.acc.multiplyScalar(this.scaler);
     this.vel.add(this.acc);
     this.loc.add(this.vel);
-
-    if(this.loc.distanceTo(this.dest) > 2000) {
-      if(Math.random() > 0.7) {
-       this.vel.copy(new THREE.Vector3(0, 0, 0));
-       this.loc.copy(this.dest);
-      }
-    }
 
     if (Math.random() > 0.999) {
       this.index = (this.index + 1 % num_circles);

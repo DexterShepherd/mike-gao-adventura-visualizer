@@ -3,16 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <title></title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:700" rel="stylesheet">
+  <script src="https://use.fontawesome.com/04e9bef5f1.js"></script>
+  <script src="bundle.js"></script>
   <style>
     body {
       padding: 0;
       margin: 0;
       border: 0;
+      background: #000;
+      font-family: 'Open Sans Condensed', sans-serif;
+      font-style: italic;
+    }
+
+    #hero {
+      opacity: 0;
+      padding-top: 10%;
+      font-size: 50px;
+      text-align: center;
+    }
+
+    #ended {
+      font-size: 30px;
+      text-align: center; 
+      color: #ddd;
+      opacity: 0;
+    }
+
+    .social {
+      padding-left: 25%;
+      width: 50%;
+      padding-top: 50px; 
+      display: flex;
+      justify-content: space-around;
     }
 
   </style>
 </head>
 <body>
-  <script src="bundle.js"></script>
+  <div id='hero'>
+    <h1> Mike Gao </h1>
+    <h1> Adventura </h1>
+    <h5> whitestone </h5>
+  </div>
+
+  <div id='ended'> 
+    <a id='restart' href='#'> <i class="fa fa-5x fa-inverse fa-repeat"></i> </a>
+
+    <div class='social'>
+      <a href='https://github.com/DexterShepherd'> <i class="fa fa-2x fa-inverse fa-github"></i> </a>
+      <a href='https://www.instagram.com/dexterwritescode/'> <i class="fa fa-2x fa-inverse fa-instagram"></i> </a>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,8 +1,11 @@
-let THREE = require('three-js')();
+let THREE = require('three-js')(['OBJLoader']);
 const p5 = require('p5');
 const sound = require('p5/lib/addons/p5.sound.js');
 const dom = require('p5/lib/addons/p5.dom.js');
 const NOC = require('./src/particle.js');
+
+const Fade = require('fade');
+
 
 
 new p5(p => {
@@ -11,9 +14,10 @@ new p5(p => {
   p.preload = function() {
     // playback = p.loadSound('data/mike-gao.mp3');
     // drum = p.loadSound('data/mike-gao.mp3');
+    
     let audioPath = 'humbled.mp3';
-    playback = p.loadSound('data/mike-gao.mp3');
     drum = p.loadSound('data/mike-gao-drum.mp3');
+    playback = p.loadSound('data/mike-gao.mp3');
   }
 
   p.setup = function() {
@@ -23,6 +27,12 @@ new p5(p => {
     setupAudio();
     init();
     animate();
+
+    playback.onended( () => {
+      ended = true; 
+      let controls = document.querySelector('#ended');
+      Fade.in(controls, 2000);
+    });
   }
 
   p.draw = function() {
@@ -40,8 +50,8 @@ new p5(p => {
     lp.disconnect();
     drum.connect(lp);
     drumFFT.setInput(lp);
-    playback.loop();
-    drum.loop();
+    playback.play();
+    drum.play();
     mute = new p5.Gain();
     drum.connect(mute);
     mute.amp(0);
@@ -51,50 +61,49 @@ new p5(p => {
 
 let container, clock = new THREE.Clock(true), clockBig = new THREE.Clock(true);
 let camera, scene, renderer, particles, geometry, material, parameters, i, h, color, size;
-let dests, sphere, testers = [], speed = 0, num_points = 1;
+let dests, sphere, testers = [], speed = 0, num_points = Math.round(Math.random() * 10);
 let movers;
 let mouseX = 0, mouseY = 0;
 let audioTrigger = 0;
 let composer;
-
 let timeSinceLastTrigger = 0;
-
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
+let text = null;
+let loaded = false;
+
+let exploded = false;
+let trigger = false;
+let triggerBig = false;
+
+let ended = false;
 
 function init() {
   container = document.createElement( 'div' );
+  container.style.position = 'absolute';
+  container.style.top = '0';
+  container.style.left = '0';
+  container.style.zIndex = '-1';
   document.body.appendChild( container );
+  
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
   camera.position.z = 1000;
   scene = new THREE.Scene();
   geometry = new THREE.Geometry();
   movers = [];
 
-  for ( i = 0; i < 40000; i ++ ) {
-    var vertex = new THREE.Vector3(0, 0, 0);
+  for ( i = 0; i < 60000; i ++ ) {
+    var vertex = new THREE.Vector3(_random(window.innerWidth), _random(window.innerHeight), _random(1000));
     geometry.vertices.push( vertex );
     movers.push(new NOC.Particle(vertex, i % num_points));
   }
 
 
-    let tex = new THREE.TextureLoader().load('images/circle2.png');
-    material = new THREE.PointsMaterial( { size: Math.random() * 2, color: 0xffffff } );
-    particles = new THREE.Points( geometry, material );
+  material = new THREE.PointsMaterial( { size: 2, color: 0xffffff } );
+  particles = new THREE.Points( geometry, material );
 
-    // particles.rotation.x = Math.random() * 6;
-    // particles.rotation.y = Math.random() * 6;
-    // particles.rotation.z = Math.random() * 6;
-
-    scene.add( particles );
-
-  for(let i = 0; i < 5; i++) {
-    let geom = new THREE.SphereGeometry( 30, 10, 10 );
-    let material = new THREE.MeshBasicMaterial( {wireframe: true} );
-    let sphere = new THREE.Mesh( geom, material );
-    testers.push(sphere);
-  }
+  scene.add( particles );
 
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
@@ -106,38 +115,54 @@ function init() {
   document.addEventListener( 'touchstart', onDocumentTouchStart, false );
   document.addEventListener( 'touchmove', onDocumentTouchMove, false );
   window.addEventListener( 'resize', onWindowResize, false );
+  
+  let replay = document.querySelector("#restart")
+
+  replay.addEventListener( 'click', restart, false);
+
+  let hero = document.querySelector('#hero');
+  Fade.in(hero, 10000);
+
+  setTimeout( () => {
+    Fade.out(hero, 10000);
+  }, 5000)
+
+  // setTimeout( () => { 
+  //     ended = true; 
+  //     let controls = document.querySelector('#ended');
+  //     Fade.in(controls, 2000);
+ // }, 10000);
 }
 
 
-let tag = 0;
-let exploded = false;
-let trigger = false;
-let triggerBig = false;
+function restart() {
+  location.reload();
+}
 
 function animate() {
+  if(ended) { return }
 
-  speed += mapRange(audioTrigger, 0, 255, 0.0001, 0.0200);
+  speed += mapRange(audioTrigger, 0, 255, 0.001, 0.020);
 
-  trigger = ((audioTrigger > 202) && (clock.getDelta() > 0.1));
-  triggerBig = ((audioTrigger > 230) && (clockBig.getDelta() > 0.1));
+  trigger = ((audioTrigger > 200) && (clock.getDelta() > 0.05));
+  triggerBig = ((audioTrigger > 210) && (clockBig.getDelta() > 0.05));
 
 
   particles.geometry.vertices.forEach( (v, index) => {
+
     if ( exploded ) {
       movers[index].scaler = 0.01;
       movers[index].vel.copy( new THREE.Vector3(0, 0, 0) );
       exploded = false;
     }
+
     if(trigger) {
       movers[index].vel.copy(new THREE.Vector3(_random(10), _random(10), _random(10)));
       num_points = Math.floor(Math.random() * 20) + 1;
       movers[index].scaler = 1 - movers[index].scaler;
       if( triggerBig ) {
-        if (tag % 4 == 0) {
-          movers[index].scaler = Math.random() * 3;
-          exploded = true
-        }
-        tag++;
+        movers[index].scaler = Math.random() * 3;
+        exploded = true
       }
     }
     v.copy( movers[index].update(v, num_points, speed) );
