@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", (event) => { 
   let playButton = document.querySelector('#play');
+
   playButton.addEventListener('click', () => {
     let THREE = require('three-js')(['OBJLoader']);
     const p5 = require('p5');
@@ -11,7 +12,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
     Fade.out(playButton);
+    let loader = document.querySelector('#loadingText')
 
+    Fade.in(loader);
     new p5(p => {
       let input, drumFFT, drum, lp, playback, mute;
 
@@ -27,6 +30,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       p.setup = function() {
         // move default canvas out of the way
         let c = p.createCanvas(0, 0);
+        Fade.out(loader);
         c.position(-9999, -9999);
         setupAudio();
         init();

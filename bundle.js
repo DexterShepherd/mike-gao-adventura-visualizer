@@ -56,6 +56,7 @@
 
 	document.addEventListener("DOMContentLoaded", function (event) {
 	  var playButton = document.querySelector('#play');
+
 	  playButton.addEventListener('click', function () {
 	    var THREE = __webpack_require__(2)(['OBJLoader']);
 	    var p5 = __webpack_require__(67);
@@ -66,7 +67,9 @@
 	    var Fade = __webpack_require__(71);
 
 	    Fade.out(playButton);
+	    var loader = document.querySelector('#loadingText');
 
+	    Fade.in(loader);
 	    new p5(function (p) {
 	      var input = void 0,
 	          drumFFT = void 0,
@@ -87,6 +90,7 @@
 	      p.setup = function () {
 	        // move default canvas out of the way
 	        var c = p.createCanvas(0, 0);
+	        Fade.out(loader);
 	        c.position(-9999, -9999);
 	        setupAudio();
 	        init();
