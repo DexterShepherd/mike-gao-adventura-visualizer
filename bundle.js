@@ -89,8 +89,6 @@
 
 	    playback.onended(function () {
 	      ended = true;
-	      var controls = document.querySelector('#ended');
-	      Fade.in(controls, 2000);
 	    });
 	  };
 
@@ -189,22 +187,12 @@
 	  document.addEventListener('touchmove', onDocumentTouchMove, false);
 	  window.addEventListener('resize', onWindowResize, false);
 
-	  var replay = document.querySelector("#restart");
-
-	  replay.addEventListener('click', restart, false);
-
 	  var hero = document.querySelector('#hero');
 	  Fade.in(hero, 10000);
 
 	  setTimeout(function () {
 	    Fade.out(hero, 10000);
 	  }, 5000);
-
-	  // setTimeout( () => { 
-	  //     ended = true; 
-	  //     let controls = document.querySelector('#ended');
-	  //     Fade.in(controls, 2000);
-	  // }, 10000);
 	}
 
 	function restart() {
