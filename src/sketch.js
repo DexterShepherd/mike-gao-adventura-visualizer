@@ -30,8 +30,6 @@ new p5(p => {
 
     playback.onended( () => {
       ended = true; 
-      let controls = document.querySelector('#ended');
-      Fade.in(controls, 2000);
     });
   }
 
@@ -115,10 +113,6 @@ function init() {
   document.addEventListener( 'touchstart', onDocumentTouchStart, false );
   document.addEventListener( 'touchmove', onDocumentTouchMove, false );
   window.addEventListener( 'resize', onWindowResize, false );
-  
-  let replay = document.querySelector("#restart")
-
-  replay.addEventListener( 'click', restart, false);
 
   let hero = document.querySelector('#hero');
   Fade.in(hero, 10000);
@@ -126,12 +120,6 @@ function init() {
   setTimeout( () => {
     Fade.out(hero, 10000);
   }, 5000)
-
-  // setTimeout( () => { 
-  //     ended = true; 
-  //     let controls = document.querySelector('#ended');
-  //     Fade.in(controls, 2000);
- // }, 10000);
 }
 
 
