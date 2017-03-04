@@ -1,11 +1,11 @@
 {
-  "name": "Daily-Sketch-02-23-17",
+  "name": "Adventura-Visualizer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --hot",
-    "build": "webpack ./sketch.js ./bundle.js"
+    "build": "webpack ./src/sketch.js ./bundle.js"
   },
   "author": "Dexter Shepherd",
   "license": "ISC",

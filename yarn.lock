@@ -715,6 +715,10 @@ clone@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.2.tgz#260b7a99ebb1edfe247538175f783243cb19d149"
 
+clubber@^1.4.4:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/clubber/-/clubber-1.4.4.tgz#e03f8fcba42bc3bda0f3aec8faa949097306ba96"
+
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
@@ -1044,6 +1048,12 @@ extglob@^0.3.1:
 extsprintf@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.0.2.tgz#e1080e0658e300b06294990cc70e1502235fd550"
+
+fade@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/fade/-/fade-0.2.0.tgz#58fb33753f4424a1e3870fb92709e387af797be7"
+  dependencies:
+    prefixed "0.0.0"
 
 falafel@^1.0.0:
   version "1.2.0"
@@ -1830,10 +1840,6 @@ p5@^0.5.4:
     opentype.js "^0.4.9"
     reqwest "^1.1.5"
 
-p5util:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/p5util/-/p5util-1.0.0.tgz#1584c20caf60e87e3b4e22e5dbad5e2d4f25d3ce"
-
 pako@~0.2.0:
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/pako/-/pako-0.2.9.tgz#f3f7522f4ef782348da8161bad9ecfd51bf83a75"
@@ -1888,6 +1894,10 @@ pkg-dir@^1.0.0:
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-1.0.0.tgz#7a4b508a8d5bb2d629d447056ff4e9c9314cf3d4"
   dependencies:
     find-up "^1.0.0"
+
+prefixed@0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/prefixed/-/prefixed-0.0.0.tgz#945b149d92e7375bc660519b1361521aab97df8d"
 
 preserve@^0.2.0:
   version "0.2.0"
@@ -2389,6 +2399,14 @@ tar@~2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
+
+three-js@^79.0.0:
+  version "79.0.0"
+  resolved "https://registry.yarnpkg.com/three-js/-/three-js-79.0.0.tgz#0318eaacab286ddcf88fa3e1977e8a6ee6957b59"
+
+three@^0.84.0:
+  version "0.84.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.84.0.tgz#95be85a55a0fa002aa625ed559130957dcffd918"
 
 through2@^2.0.0:
   version "2.0.3"
